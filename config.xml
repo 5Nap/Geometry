@@ -1,0 +1,47 @@
+<ESRI.Configuration xmlns="http://schemas.esri.com/Desktop/AddIns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   <Name>Geometry Tools</Name>
+   <AddInID>{2f6dca7c-25c2-4a6b-ac3f-e8af16eac947}</AddInID>
+   <Description>Tool to handle layers geometry</Description>
+   <Version>0.99</Version>
+   <Image />
+   <Author>GC</Author>
+   <Company>GC</Company>
+   <Date>03/31/2017</Date>
+   <Targets>
+      <Target name="Desktop" version="10.2" />
+   </Targets>
+   <AddIn language="PYTHON" library="Geometry_addin.py" namespace="Geometry_addin">
+      <ArcMap>
+         <Commands>
+            <Button caption="Create Curves" category="Geometry Tools" class="CurveButton" id="Geometry_addin.btnCurve" image="Images\curves.png" message="Smooth line by generating curves on it's corners" tip="Create Curves">
+               <Help heading="Help: heading" />
+            </Button>
+			<Button caption="Orthogonalize + Buildings" category="Geometry Tools" class="OrthoBuildingsButton" id="Geometry_addin.btnOrthoBuildings" image="Images\ortho_buildings.png" message="Orthogonalize polygon and align it parallel to the nearest building" tip="Orthogonalize + buildings">
+               <Help heading="Help: heading" />
+            </Button>
+			<Button caption="Orthogonalize + Roads" category="Geometry Tools" class="OrthoRoadsButton" id="Geometry_addin.btnOrthoRoads" image="Images\ortho_roads.png" message="Orthogonalize polygon and align it parallel to the nearest road" tip="Orthogonalize + roads">
+               <Help heading="Help: heading" />
+            </Button>
+			<Button caption="Create Offset" category="Geometry Tools" class="OffsetButton" id="Geometry_addin.btnOffset" image="Images\offset.png" message="Create new polygon in allhouse layer by offsetting selected line" tip="Create Offset">
+               <Help heading="Help: heading" />
+            </Button>
+			<Button caption="Change Settings" category="Geometry Tools" class="SettingsButton" id="Geometry_addin.btnSettings" image="Images\settings.png" message="Change settings" tip="Change Settings">
+               <Help heading="Help: heading" />
+            </Button>
+         </Commands>
+         <Extensions />
+         <Toolbars>
+            <Toolbar caption="Geometry Toolbar" category="Geometry Tools" id="Geometry_addin.toolbar" showInitially="true">
+               <Items>
+                  <Button refID="Geometry_addin.btnCurve" />
+				  <Button refID="Geometry_addin.btnOrthoBuildings" />
+				  <Button refID="Geometry_addin.btnOrthoRoads" />
+				  <Button refID="Geometry_addin.btnOffset" />
+				  <Button refID="Geometry_addin.btnSettings" />
+               </Items>
+            </Toolbar>
+         </Toolbars>
+         <Menus />
+      </ArcMap>
+   </AddIn>
+</ESRI.Configuration>
