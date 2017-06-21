@@ -2,10 +2,12 @@
 
 import math
 import arcpy
+
 webmercator_wkid = 3857
 WEBMERC = arcpy.SpatialReference(webmercator_wkid)
 
-def f_getLineAngle(p0, p1):
+
+def getlineangle(p0, p1):
 	angle = math.atan2(p1[1]-p0[1], p1[0]-p0[0])
 	if angle > 180:
 		return angle - 360
@@ -14,7 +16,8 @@ def f_getLineAngle(p0, p1):
 	else:
 		return angle
 
-def f_getAngle(p0, p1, p2):
+
+def getanglebetweenvectors(p0, p1, p2):
 	# Returns angle between vectors p1p0 and p1p2
 	# if vector turns counter-clockwise - angle >= 0 else < 0
 	angle1 = math.atan2(p1[1]-p0[1], p1[0]-p0[0])
@@ -27,7 +30,8 @@ def f_getAngle(p0, p1, p2):
 	else:
 		return angle
 
-def anglebetweenlines(vector1, vector2):
+
+def getanglebetweenlines(vector1, vector2):
 	# returns angle between vectors line1 and line2
 	# line = [[x0, y0], [x1, y1]]
 	angle1 = math.atan2(vector1[1][1] - vector1[0][1], vector1[1][0] - vector1[0][0])
@@ -40,7 +44,8 @@ def anglebetweenlines(vector1, vector2):
 	else:
 		return angle
 
-def f_floorAngle(angle):
+
+def floorangle(angle):
 	# Returns angle in (-90, 90) from (-180,180) after atan2
 	if angle > 90:
 		return angle-180
@@ -50,7 +55,7 @@ def f_floorAngle(angle):
 		return angle
 
 
-def f_lineEquation(x1, y1, x2, y2):
+def getlineequation(x1, y1, x2, y2):
 	# Equation of a line between two points
 	a = (y1-y2)
 	b = (x2-x1)
@@ -58,7 +63,7 @@ def f_lineEquation(x1, y1, x2, y2):
 	return a, b, c
 
 
-def f_linesCrossing(a1, b1, c1, a2, b2, c2):
+def getlinesintersection(a1, b1, c1, a2, b2, c2):
 	# Returns a point where two lines with coeff a-b-c cross
 	if (a1*b2-a2*b1) != 0:
 		x = -(c1*b2-c2*b1)/(a1*b2-a2*b1)
@@ -68,7 +73,7 @@ def f_linesCrossing(a1, b1, c1, a2, b2, c2):
 		return None, None
 
 
-def f_pointOnVector (p1, p2, l):
+def getpointonvector(p1, p2, l):
 	x1, y1 = p1
 	x2, y2 = p2
 	length = math.sqrt((x2-x1)**2+(y2-y1)**2)

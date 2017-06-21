@@ -3,7 +3,7 @@
 import json
 import arcpy
 import math
-from geometry_functions import f_getAngle, f_pointOnVector, f_lineEquation, f_linesCrossing
+from geometry_functions import getanglebetweenvectors, getpointonvector, getlineequation, getlinesintersection
 from find_functions import findsinglevertex
 from readwrite_functions import readwkt, writewkt
 
@@ -61,7 +61,7 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 							new_geom_key = u'curvePaths'
 							old_geom_key = geom_key
 						else:
-							angle = f_getAngle(pnt_prev, pnt_cur, pnt_next)
+							angle = getanglebetweenvectors(pnt_prev, pnt_cur, pnt_next)
 							if angle_th < abs(angle) < 180 - angle_th:
 								d1 = (pnt_cur[0]-pnt_prev[0])**2+(pnt_cur[1]-pnt_prev[1])**2
 								d2 = (pnt_cur[0]-pnt_next[0])**2+(pnt_cur[1]-pnt_next[1])**2
@@ -69,8 +69,8 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 									radius_th_w = min([d1, d2])**0.5 / 2
 								else:
 									radius_th_w = radius_th
-								new_prev = f_pointOnVector(pnt_cur, pnt_prev, radius_th_w)
-								new_next = f_pointOnVector(pnt_cur, pnt_next, radius_th_w)
+								new_prev = getpointonvector(pnt_cur, pnt_prev, radius_th_w)
+								new_next = getpointonvector(pnt_cur, pnt_next, radius_th_w)
 
 								dx1 = pnt_cur[0] - pnt_prev[0]
 								dy1 = pnt_cur[1] - pnt_prev[1]
@@ -80,15 +80,15 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 								fake_prev = [new_prev[0] + dy1, new_prev[1] - dx1]
 								fake_next = [new_next[0] + dy2, new_next[1] - dx2]
 
-								radius_prev = f_lineEquation(new_prev[0], new_prev[1], fake_prev[0], fake_prev[1])
-								radius_next = f_lineEquation(new_next[0], new_next[1], fake_next[0], fake_next[1])
+								radius_prev = getlineequation(new_prev[0], new_prev[1], fake_prev[0], fake_prev[1])
+								radius_next = getlineequation(new_next[0], new_next[1], fake_next[0], fake_next[1])
 
-								center = f_linesCrossing(
+								center = getlinesintersection(
 										radius_prev[0], radius_prev[1], radius_prev[2],
 										radius_next[0], radius_next[1], radius_next[2])
 
 								radius_act = ((center[0]-new_prev[0])**2 + (center[1]-new_prev[1])**2)**0.5
-								arc_center = f_pointOnVector(center, pnt_cur, radius_act)
+								arc_center = getpointonvector(center, pnt_cur, radius_act)
 								arc = {u'c': [new_next, arc_center]}
 
 								newpart.append(new_prev)
@@ -137,7 +137,7 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 							pnt_prev = part[i-1]
 							pnt_next = part[i+1]
 							pnt_cur = pnt
-							angle = f_getAngle(pnt_prev, pnt_cur, pnt_next)
+							angle = getanglebetweenvectors(pnt_prev, pnt_cur, pnt_next)
 							if angle_th < abs(angle) < 180 - angle_th:
 								d1 = (pnt_cur[0]-pnt_prev[0])**2+(pnt_cur[1]-pnt_prev[1])**2
 								d2 = (pnt_cur[0]-pnt_next[0])**2+(pnt_cur[1]-pnt_next[1])**2
@@ -145,8 +145,8 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 									radius_th_w = min([d1, d2])**0.5 / 2
 								else:
 									radius_th_w = radius_th
-								new_prev = f_pointOnVector(pnt_cur, pnt_prev, radius_th_w)
-								new_next = f_pointOnVector(pnt_cur, pnt_next, radius_th_w)
+								new_prev = getpointonvector(pnt_cur, pnt_prev, radius_th_w)
+								new_next = getpointonvector(pnt_cur, pnt_next, radius_th_w)
 
 								dx1 = pnt_cur[0] - pnt_prev[0]
 								dy1 = pnt_cur[1] - pnt_prev[1]
@@ -156,10 +156,10 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 								fake_prev = [new_prev[0] + dy1, new_prev[1] - dx1]
 								fake_next = [new_next[0] + dy2, new_next[1] - dx2]
 
-								radius_prev = f_lineEquation(new_prev[0], new_prev[1], fake_prev[0], fake_prev[1])
-								radius_next = f_lineEquation(new_next[0], new_next[1], fake_next[0], fake_next[1])
+								radius_prev = getlineequation(new_prev[0], new_prev[1], fake_prev[0], fake_prev[1])
+								radius_next = getlineequation(new_next[0], new_next[1], fake_next[0], fake_next[1])
 
-								center = f_linesCrossing(
+								center = getlinesintersection(
 										radius_prev[0], radius_prev[1], radius_prev[2],
 										radius_next[0], radius_next[1], radius_next[2])
 								radius_act = ((center[0] - new_prev[0]) ** 2 + (center[1] - new_prev[1]) ** 2) ** 0.5

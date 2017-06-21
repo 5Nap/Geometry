@@ -25,10 +25,11 @@ def wkt2list(wktstring):
 	# coords = []
 	partstr = ''
 	parts = {1: [], 2: [], 3: []}
+	inlevel = False
 	for i, l in enumerate(coord_string):
 		if l == '(':
 			if level == curlevel:
-				level +=1
+				level += 1
 			curlevel += 1
 			inlevel = True
 		elif l == ')':

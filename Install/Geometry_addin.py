@@ -12,7 +12,7 @@ try:
 except UnicodeEncodeError:
 	rel_path = os.path.normpath(os.path.dirname(__file__))
 
-sys.path.append(os.path.join(rel_path, u'Scripts'))
+sys.path.append(os.path.join(rel_path, u'scripts'))
 sys.dont_write_bytecode = True
 
 from layer_functions import getworkspace, checkallhouse, readnearestroads, readnearestbuildings
@@ -24,8 +24,8 @@ from offsetting import createoffset
 from cls_editor import Editor
 from cls_timer import Timer
 
+json_or_wkt = u'WKT' if arcpy.GetInstallInfo()['Version'] < '10.3' else u'JSON'
 
-json_or_wkt = u'WKT'
 settings_dict = {
 	u'Ortho Threshold': 10,
 	u'Search Radius': 50,
@@ -34,14 +34,13 @@ settings_dict = {
 	u'Curves Radius': 5,
 	u'Curves Angle': 0,
 	u'Align to Roads': 0,
-	u'Read Offset from Field': 0}
+	u'Read Offset from Field': 0}  # align to roads
 
 arcpy.env.XYTolerance = u'0.1 Meters'
 python_path = os.path.join(sys.exec_prefix, u'python.exe')
 
 editor = Editor()
 timer = Timer()
-buttons = []
 
 
 class CurveButton(object):
@@ -60,7 +59,6 @@ class CurveButton(object):
 				if data[u'gdb'] == editor.path:
 					layer = data[u'lyr']
 
-					# t_start = time.time()
 					timer.start()
 
 					if json_or_wkt == u'WKT':
@@ -77,10 +75,8 @@ class CurveButton(object):
 							radius_th = settings_dict[u'Curves Radius'])
 					editor.stop_operation('Create Curves')
 
-					# t_stop = time.time()
 					arcpy.RefreshActiveView()
 					timer.stop(message = u'Create Curves')
-					# arcpy.AddMessage(u'time Curves: {0:.2f} sec'.format(t_stop - t_start))
 				else:
 					layer = data[u'lyr']
 					title = u'Warning'
@@ -228,7 +224,7 @@ class SettingsButton(object):
 	def onClick(self):
 		global settings_dict
 
-		script = os.path.join(rel_path, u'Scripts', u'settings_button.py')
+		script = os.path.join(rel_path, u'scripts', u'settings_button.py')
 
 		script_string = u'{0},{1},{2},{3},{4},{5},{6},{7}'.format(
 			unicode(settings_dict[u'Ortho Threshold']),
@@ -282,6 +278,7 @@ def rectifybuildings(layer, roads, extent, settings, force = False, editor_objec
 			layer = layer,
 			extent = extent,
 			radius = settings[u'Search Radius'])
+
 	# find closest building
 	mode, geometry = findnearestbuilding(
 				layerwork = layer,
@@ -289,7 +286,7 @@ def rectifybuildings(layer, roads, extent, settings, force = False, editor_objec
 				radius = settings[u'Search Radius'])
 	timer.stop_lap(message = u'Copy Polygons')
 
-	# if mode == 0 - a polygon shares a segment with some other building.
+	# if mode == 0 -> a polygon shares a segment with other building.
 	if mode != 0:
 		orthogonalizepolygons(
 				layer = layer,
@@ -305,6 +302,7 @@ def rectifybuildings(layer, roads, extent, settings, force = False, editor_objec
 					layer = roads,
 					extent = extent,
 					radius = settings[u'Search Radius'])
+
 			# find closest road
 			mode, geometry = findnearestline(
 					layer = layer,
@@ -319,7 +317,6 @@ def rectifybuildings(layer, roads, extent, settings, force = False, editor_objec
 					layer = layer,
 					mode = mode,
 					geometry = geometry,
-					radius = settings[u'Search Radius'],
 					procent = settings[u'Rotation Threshold'])
 			editor_object.stop_operation('Aligning')
 

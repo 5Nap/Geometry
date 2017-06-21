@@ -7,22 +7,16 @@ webmercator_wkid = 3857
 WEBMERC = arcpy.SpatialReference(webmercator_wkid)
 
 
-def alignpolygons(layer, mode, geometry, radius, procent):
+def alignpolygons(layer, mode, geometry, procent):
 	arcpy.env.addOutputsToMap = False
 
-	# set input parameters
-	if radius == '':
-		radius = 50
-	else:
-		radius = float(radius)						# area of search in m
-	
+	# perecent of rotation
 	if procent == '':
 		procent = 20
 	else:
-		procent = float(procent) 						# perecent of rotation
+		procent = float(procent)
 	
 	with arcpy.da.UpdateCursor(layer, ["SHAPE@"], spatial_reference = WEBMERC) as cursor:
-		# for all houses
 		for row in cursor:
 			if mode == 1:
 				print u'-> Allign to the largest building'
@@ -31,11 +25,15 @@ def alignpolygons(layer, mode, geometry, radius, procent):
 			angle = calculateangle(
 					geometry = row[0],
 					nearest_geometry = geometry)
-			arcpy.AddMessage(u'Angle: {0:.2f} deg'.format(angle))
+			arcpy.AddMessage(u'Rotation angle: {0:.2f} deg'.format(angle))
+
+			# get 0 if angle exceeds limits
 			angle = checkangle(angle, procent)
 			
-			# rotate polygon and add them to new layer
+			# rotate polygon and get a new geometry
 			new_polygon = rotatepolygon(
 					polygon = row[0],
 					angle = angle)
+
+			# update polygon geometry
 			cursor.updateRow([new_polygon])

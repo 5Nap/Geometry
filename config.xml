@@ -10,7 +10,7 @@
    <Targets>
       <Target name="Desktop" version="10.2" />
    </Targets>
-   <AddIn language="PYTHON" library="Geometry_addin.py" namespace="Geometry_addin">
+   <AddIn language="PYTHON" library="geometry_addin.py" namespace="Geometry_addin">
       <ArcMap>
          <Commands>
             <Button caption="Create Curves" category="Geometry Tools" class="CurveButton" id="Geometry_addin.btnCurve" image="Images\curves.png" message="Smooth line by generating curves on it's corners" tip="Create Curves">

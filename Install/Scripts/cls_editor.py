@@ -1,7 +1,6 @@
 ﻿# coding: utf-8
 
-import arcpy
-from comtypes.client import GetModule, CreateObject
+from comtypes.client import GetModule
 from snippets102 import *
 import comtypes.gen.esriSystem as esriSystem
 import comtypes.gen.esriEditor as esriEditor

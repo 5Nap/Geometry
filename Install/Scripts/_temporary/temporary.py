@@ -4,7 +4,7 @@ import arcpy
 import os
 import math
 
-from geometry_functions import f_getAngle, f_floorAngle, f_lineEquation, f_linesCrossing
+from geometry_functions import getanglebetweenvectors, floorangle, getlineequation, getlinesintersection
 from readwrite_functions import readgeometryfromrow, creategeometryfromlist
 
 webmercator_wkid = 3857
@@ -45,10 +45,10 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 						p_prev_id = part[p_prev_no]
 						p_next_id = part[p_next_no]
 
-						angle_prev = f_floorAngle(
-							f_getAngle(points_coords[p_prev_id], points_coords[p1_id], points_coords[p2_id]))
-						angle_next = f_floorAngle(
-							f_getAngle(points_coords[p1_id], points_coords[p2_id], points_coords[p_next_id]))
+						angle_prev = floorangle(
+							getanglebetweenvectors(points_coords[p_prev_id], points_coords[p1_id], points_coords[p2_id]))
+						angle_next = floorangle(
+							getanglebetweenvectors(points_coords[p1_id], points_coords[p2_id], points_coords[p_next_id]))
 
 						# если угол около 180, то предыдущая/следующая точки берутся +1.
 						if -threshold < angle_prev < threshold and not ok_1:
@@ -95,14 +95,14 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 					y_next = points_coords[p_next_id][1]
 
 					try:
-						a_prev, b_prev, c_prev = f_lineEquation(x1, y1, x_prev, y_prev)
-						a_next, b_next, c_next = f_lineEquation(x2, y2, x_next, y_next)
+						a_prev, b_prev, c_prev = getlineequation(x1, y1, x_prev, y_prev)
+						a_next, b_next, c_next = getlineequation(x2, y2, x_next, y_next)
 					except ZeroDivisionError:
 						arcpy.AddMessage("! - Failed line crossing, OID: {}, points: {}, {}".format(oid, p1_no, p2_no))
 
 					# Если линии почему-то не пересекаются, то координаты точек остаются прежними
-					x1_new, y1_new = f_linesCrossing(a, b, c, a_prev, b_prev, c_prev)
-					x2_new, y2_new = f_linesCrossing(a, b, c, a_next, b_next, c_next)
+					x1_new, y1_new = getlinesintersection(a, b, c, a_prev, b_prev, c_prev)
+					x2_new, y2_new = getlinesintersection(a, b, c, a_next, b_next, c_next)
 					if x1_new is None:
 						x1_new, y1_new = x1, y1
 					if x2_new is None:
@@ -136,7 +136,7 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 					if trigger == 1:
 						# print "point to check: {} -> {}".format(p1_no,p2_no)
 						p_corr_no = (p1_no + 1) % loop
-						ab, bb, cb = f_lineEquation(x1_new, y1_new, x2_new, y2_new)
+						ab, bb, cb = getlineequation(x1_new, y1_new, x2_new, y2_new)
 						while p_corr_no != p2_no:
 							p_corr_id = part[p_corr_no]
 
@@ -148,7 +148,7 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 							c_corr = bb * x_corr - ab * y_corr
 
 							try:
-								x_corr_new, y_corr_new = f_linesCrossing(ab, bb, cb, a_corr, b_corr, c_corr)
+								x_corr_new, y_corr_new = getlinesintersection(ab, bb, cb, a_corr, b_corr, c_corr)
 							except ZeroDivisionError:
 								x_corr_new, y_corr_new = x_corr, y_corr
 								arcpy.AddMessage("! - Failed perp, OID: {}".format(oid))

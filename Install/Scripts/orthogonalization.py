@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import arcpy
 import os
 import math
+import arcpy
 
-from geometry_functions import f_getAngle, f_floorAngle, f_lineEquation, f_linesCrossing
-from readwrite_functions import readgeometryfromrow, creategeometryfromlist, wkt2list
+from geometry_functions import getanglebetweenvectors, floorangle, getlineequation, getlinesintersection
+from readwrite_functions import creategeometryfromlist, wkt2list
 
 webmercator_wkid = 3857
 WEBMERC = arcpy.SpatialReference(webmercator_wkid)
@@ -44,7 +44,7 @@ def grouppolygons(layer):
 	arcpy.Buffer_analysis(
 			in_features = layer,
 			out_feature_class = temp_buff,
-			buffer_distance_or_field = '0.15')
+			buffer_distance_or_field = '0.5 Meters')
 
 	arcpy.RepairGeometry_management(
 			in_features = temp_buff,
@@ -161,7 +161,7 @@ def removepoints(poly_dict, group, threshold):
 			p_id_1 = points_id[p_no[0]][p_no[1]][p_no[2]]
 			p_id_2 = points_id[p_no[0]][p_no[1]][(p_no[2]+1) % loop]
 
-			angle = f_floorAngle(f_getAngle(points_coords[p_id_0], points_coords[p_id_1], points_coords[p_id_2]))
+			angle = floorangle(getanglebetweenvectors(points_coords[p_id_0], points_coords[p_id_1], points_coords[p_id_2]))
 			if -threshold < angle < threshold:
 				del poly_dict[p_no[0]]['geom'][p_no[1]][p_no[2]]
 				del points_id[p_no[0]][p_no[1]][p_no[2]]
@@ -199,12 +199,12 @@ def clusterizeangles(poly_dict, group, threshold):
 				dx = part[(i+1) % quant][0] - part[i][0]
 				dy = part[(i+1) % quant][1] - part[i][1]
 				lenghts += [math.hypot(dx, dy)]
-				angles += [f_floorAngle(math.degrees(math.atan2(dy, dx)))]
-	arcpy.AddMessage('lenghts: {0}'.format(lenghts))
-	arcpy.AddMessage(angles)
+				angles += [floorangle(math.degrees(math.atan2(dy, dx)))]
+	# arcpy.AddMessage('lenghts: {0}'.format(lenghts))
+	# arcpy.AddMessage(angles)
 	# Matrix - матрица NxN с разницей углов наклона i-го и j-го	ребер.
 	matrix = [[math.fabs(angles[i]-angles[j]) for i in xrange(len(angles))] for j in xrange(len(angles))]
-	arcpy.AddMessage(matrix)
+	# arcpy.AddMessage(matrix)
 	
 	delta = 0
 	ind = []
@@ -268,7 +268,7 @@ def clusterizeangles(poly_dict, group, threshold):
 	for i in xrange(len(sum_lenghts_sort)):
 		for j in xrange(i):
 			ang_diff = math.fabs(med_angles[sum_lenghts_sort[i]] - med_angles[sum_lenghts_sort[j]])
-			if True in [X-threshold < ang_diff < X+threshold for X in [90]]:
+			if True in [X-threshold < ang_diff < X+threshold for X in [90.0]]:
 				closest_angle = min([90], key=lambda d: abs(d-ang_diff))
 				med_angles[sum_lenghts_sort[i]] = med_angles[sum_lenghts_sort[j]] + math.copysign(float(closest_angle), med_angles[sum_lenghts_sort[i]] - med_angles[sum_lenghts_sort[j]])
 	
@@ -326,10 +326,10 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 						p_prev_id = part[p_prev_no]
 						p_next_id = part[p_next_no]
 
-						angle_prev = f_floorAngle(
-							f_getAngle(points_coords[p_prev_id], points_coords[p1_id], points_coords[p2_id]))
-						angle_next = f_floorAngle(
-							f_getAngle(points_coords[p1_id], points_coords[p2_id], points_coords[p_next_id]))
+						angle_prev = floorangle(
+							getanglebetweenvectors(points_coords[p_prev_id], points_coords[p1_id], points_coords[p2_id]))
+						angle_next = floorangle(
+							getanglebetweenvectors(points_coords[p1_id], points_coords[p2_id], points_coords[p_next_id]))
 
 						# если угол около 180, то предыдущая/следующая точки берутся +1.
 						if -threshold < angle_prev < threshold and not ok_1:
@@ -375,12 +375,12 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 					x_next = points_coords[p_next_id][0]
 					y_next = points_coords[p_next_id][1]
 
-					a_prev, b_prev, c_prev = f_lineEquation(x1, y1, x_prev, y_prev)
-					a_next, b_next, c_next = f_lineEquation(x2, y2, x_next, y_next)
+					a_prev, b_prev, c_prev = getlineequation(x1, y1, x_prev, y_prev)
+					a_next, b_next, c_next = getlineequation(x2, y2, x_next, y_next)
 
 					# Если линии почему-то не пересекаются, то координаты точек остаются прежними
-					x1_new, y1_new = f_linesCrossing(a, b, c, a_prev, b_prev, c_prev)
-					x2_new, y2_new = f_linesCrossing(a, b, c, a_next, b_next, c_next)
+					x1_new, y1_new = getlinesintersection(a, b, c, a_prev, b_prev, c_prev)
+					x2_new, y2_new = getlinesintersection(a, b, c, a_next, b_next, c_next)
 					if x1_new is None:
 						x1_new, y1_new = x1, y1
 					if x2_new is None:
@@ -411,7 +411,7 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 					if trigger == 1:
 						# print "point to check: {} -> {}".format(p1_no,p2_no)
 						p_corr_no = (p1_no + 1) % loop
-						ab, bb, cb = f_lineEquation(x1_new, y1_new, x2_new, y2_new)
+						ab, bb, cb = getlineequation(x1_new, y1_new, x2_new, y2_new)
 						while p_corr_no != p2_no:
 							p_corr_id = part[p_corr_no]
 
@@ -423,10 +423,10 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 							c_corr = bb * x_corr - ab * y_corr
 
 							try:
-								x_corr_new, y_corr_new = f_linesCrossing(ab, bb, cb, a_corr, b_corr, c_corr)
+								x_corr_new, y_corr_new = getlinesintersection(ab, bb, cb, a_corr, b_corr, c_corr)
 							except ZeroDivisionError:
 								x_corr_new, y_corr_new = x_corr, y_corr
-								arcpy.AddMessage("! - Failed perp, OID: {}".format(oid))
+								arcpy.AddMessage(u'! - Failed perp, OID: {}'.format(oid))
 
 							points_coords[p_corr_id][0], points_coords[p_corr_id][1] = x_corr_new, y_corr_new
 
@@ -448,8 +448,9 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 	return poly_dict
 
 	
-def orthogonalizepolygons(layer, in_edit = False, threshold = 10, proceed_groups = True, editor = None):
+def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_groups = True, editor = None):
 	# Main function
+	# arcpy.AddMessage(threshold)
 
 	arcpy.env.overwriteOutput = True
 	arcpy.env.XYTolerance = "0.1 Meters"
@@ -464,7 +465,8 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10, proceed_groups
 	try:
 		threshold = float(threshold)
 	except ValueError:
-		threshold = 10
+		arcpy.AddMessage(u'Default threshold will be used')
+		threshold = 10.0
 
 	try:
 		if proceed_groups == 'false':
@@ -475,9 +477,9 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10, proceed_groups
 		proceed_groups = True
 
 	if proceed_groups:
-		arcpy.AddMessage("-> All buildings will be proceeded")
+		arcpy.AddMessage(u'-> All buildings will be proceeded')
 	else:
-		arcpy.AddMessage("-> Only detached buildings will be proceeded")
+		arcpy.AddMessage(u'-> Only detached buildings will be proceeded')
 
 	if in_edit:
 		layer_work = layer
@@ -516,24 +518,31 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10, proceed_groups
 	else:
 		polygons_groups = grouppolygons(layer_work)
 
+	# arcpy.AddMessage(u'Threshold: {0} Meters'. format(threshold))
+	# ##############################################################
+	# TODO
+	# for k in xrange(3) - dummy way to run orthogonalization few times in a row.
+	# normal way is to track changes and stop when the changes aren't significant
+
 	for g in polygons_groups:
-		points_coords, points_id = removepoints(
-				poly_dict = poly_dict,
-				group = g,
-				threshold = threshold)
-		if proceed_groups or len(g[1]) == 1:
-			cluster_index, cluster_angles = clusterizeangles(
+		for k in xrange(3):
+			points_coords, points_id = removepoints(
 					poly_dict = poly_dict,
 					group = g,
 					threshold = threshold)
-			poly_dict = orthogonalizegroup(
-					poly_dict = poly_dict,
-					group = g,
-					index = cluster_index,
-					angle = cluster_angles,
-					points_coords = points_coords,
-					points_id = points_id,
-					threshold = threshold/2)
+			if proceed_groups or len(g[1]) == 1:
+				cluster_index, cluster_angles = clusterizeangles(
+						poly_dict = poly_dict,
+						group = g,
+						threshold = threshold)
+				poly_dict = orthogonalizegroup(
+						poly_dict = poly_dict,
+						group = g,
+						index = cluster_index,
+						angle = cluster_angles,
+						points_coords = points_coords,
+						points_id = points_id,
+						threshold = threshold/2)
 
 	arcpy.AddMessage(u'-> Excessive points removed, polygons orthogonalized')
 
@@ -547,5 +556,16 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10, proceed_groups
 	
 	if in_edit and editor is not None:
 		editor.stop_operation('Orthogonalize')
+
+if __name__ == '__main__':
+	in_layer = arcpy.GetParameterAsText(0)
+	in_thr = arcpy.GetParameterAsText(1)
+
+	orthogonalizepolygons(
+			layer = in_layer,
+			in_edit = False,
+			threshold = in_thr,
+			proceed_groups = True,
+			editor = None)
 
 

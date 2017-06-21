@@ -103,7 +103,7 @@ def calculateangle(geometry, nearest_geometry):
 	return min_angle
 
 
-def checkangle(angle=0, procent=0):
+def checkangle(angle=0.0, procent=0):
 	# Check if angle is within a limit
 	min_angle = (90 / 100.0) * procent
 	if angle > min_angle or angle < -min_angle:
