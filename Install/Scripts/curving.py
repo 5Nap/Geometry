@@ -194,9 +194,19 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 				wkt_string = writewkt([geom_key, shape_as_wkt[oid][geom_key]])
 				shape_as_wkt[oid]['shape'] = arcpy.FromWKT(wkt_string, WEBMERC)
 			except Exception as err:
-				print 'Error details:', err.args
+				arcpy.AddMessage(u'Error details: {0}'.format(err.args))
 
 		with arcpy.da.UpdateCursor(layer, ['SHAPE@', 'OID@'], spatial_reference = WEBMERC) as uc:
 			for row in uc:
 				row[0] = shape_as_wkt[row[1]]['shape']
 				uc.updateRow(row)
+
+
+if __name__ == '__main__':
+	in_layer = arcpy.GetParameterAsText(0)
+	createcurves(
+			layer = in_layer,
+			jsonwkt = 'WKT',
+			angle_th = 0,
+			radius_th = 50)
+

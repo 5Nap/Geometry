@@ -94,7 +94,9 @@ def findbiggestgeometry(houses_around):
 # find and return list of vertex located not at the crossroads
 def findsinglevertex(layer):
 	# find single vertices
-	# arcpy.Integrate_management(layer, 0.1)
+	# TODO
+	# Integrate fails for some reason
+	# arcpy.Integrate_management(layer, '0.1 Meters')
 	arcpy.env.addOutputsToMap = False
 	vert = u'in_memory\\vert'
 	ident = u'in_memory\\ident'

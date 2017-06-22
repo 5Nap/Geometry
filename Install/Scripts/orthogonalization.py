@@ -3,9 +3,11 @@
 import os
 import math
 import arcpy
+from copy import deepcopy
 
 from geometry_functions import getanglebetweenvectors, floorangle, getlineequation, getlinesintersection
 from readwrite_functions import creategeometryfromlist, wkt2list
+
 
 webmercator_wkid = 3857
 WEBMERC = arcpy.SpatialReference(webmercator_wkid)
@@ -498,7 +500,7 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_grou
 		arcpy.AddMessage("-> Layer: " + layer_name)
 
 		layer_path = os.path.join(fd, layer_name)
-		layer_work = os.path.join(fd, layer_name + "_Result")
+		layer_work = os.path.join(fd, layer_name + "_Ortho")
 
 		arcpy.Copy_management(layer_path, layer_work)
 
@@ -525,7 +527,13 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_grou
 	# normal way is to track changes and stop when the changes aren't significant
 
 	for g in polygons_groups:
+		# repeat = True
+		# test_dict_before = {k: poly_dict[k] for k in g[1]}
+		# test_dict_before = deepcopy(test_dict_before)
+		# cycle = 1
+		# while repeat:
 		for k in xrange(3):
+			# print u'{0} iteration'.format(cycle)
 			points_coords, points_id = removepoints(
 					poly_dict = poly_dict,
 					group = g,
@@ -544,6 +552,13 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_grou
 						points_id = points_id,
 						threshold = threshold/2)
 
+			# test_dict_after = {k: poly_dict[k] for k in g[1]}
+			# if test_dict_after == test_dict_before:
+			# 	repeat = False
+			# else:
+			# 	test_dict_before = deepcopy(test_dict_after)
+			# cycle += 1
+
 	arcpy.AddMessage(u'-> Excessive points removed, polygons orthogonalized')
 
 	if in_edit and editor is not None:
@@ -553,7 +568,7 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_grou
 		for row in uc:
 			row = [creategeometryfromlist(poly_dict[row[1]]['geom']), row[1]]
 			uc.updateRow(row)
-	
+
 	if in_edit and editor is not None:
 		editor.stop_operation('Orthogonalize')
 

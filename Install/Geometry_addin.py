@@ -78,14 +78,34 @@ class CurveButton(object):
 					arcpy.RefreshActiveView()
 					timer.stop(message = u'Create Curves')
 				else:
+					# Fire a tool from toolbox if layer isn't in an edit session
 					layer = data[u'lyr']
 					title = u'Warning'
-					message = u'{0} is not in edit session'.format(layer.name)
-					pythonaddins.MessageBox(message, title, 0)
+					message = u'{0} layer is not in edit session\nWould you run a geoprocessing tool?'.format(
+						layer.name)
+					mb_type = 1
+					answer = pythonaddins.MessageBox(message, title, mb_type)
+					if answer == u'OK':
+						relpath = os.path.dirname(__file__)
+						toolbox = os.path.join(relpath, u'scripts', u'toolbox', u'geometry_tools.pyt')
+						pythonaddins.GPToolDialog(toolbox, u'CreateCurves')
+
 		else:
-			title = u'Warning'
-			message = workspace[u'message']
-			pythonaddins.MessageBox(message, title, 0)
+			if editor.path is None:
+				# Fire a tool from toolbox if there is no selection in a layer and no edit session
+				title = u'Warning'
+				message = u'{0}\nWould you run a geoprocessing tool?'.format(workspace[u'message'])
+				mb_type = 1
+				answer = pythonaddins.MessageBox(message, title, mb_type)
+				if answer == u'OK':
+					relpath = os.path.dirname(__file__)
+					toolbox = os.path.join(relpath, u'scripts', u'toolbox', u'geometry_tools.pyt')
+					pythonaddins.GPToolDialog(toolbox, u'CreateCurves')
+			else:
+				title = u'Warning'
+				message = u'{0}'.format(workspace[u'message'])
+				mb_type = 0
+				pythonaddins.MessageBox(message, title, mb_type)
 
 
 class OrthoBuildingsButton(object):
@@ -114,14 +134,33 @@ class OrthoBuildingsButton(object):
 							editor_object = editor)
 					arcpy.RefreshActiveView()
 				else:
+					# Fire a tool from toolbox if layer isn't in an edit session
 					layer = data[u'lyr']
 					title = u'Warning'
-					message = u'{0} layer is not in edit session'.format(layer.name)
-					pythonaddins.MessageBox(message, title, 0)
+					message = u'{0} layer is not in edit session\nWould you run a geoprocessing tool?'.format(layer.name)
+					mb_type = 1
+					answer = pythonaddins.MessageBox(message, title, mb_type)
+					if answer == u'OK':
+						relpath = os.path.dirname(__file__)
+						toolbox = os.path.join(relpath, u'scripts', u'toolbox', u'geometry_tools.pyt')
+						pythonaddins.GPToolDialog(toolbox, u'OrthogonalizeBuildings')
+
 		else:
-			title = u'Warning'
-			message = workspace[u'message']
-			pythonaddins.MessageBox(message, title, 0)
+			if editor.path is None:
+				# Fire a tool from toolbox if there is no selection in a layer and no edit session
+				title = u'Warning'
+				message = u'{0}\nWould you run a geoprocessing tool?'.format(workspace[u'message'])
+				mb_type = 1
+				answer = pythonaddins.MessageBox(message, title, mb_type)
+				if answer == u'OK':
+					relpath = os.path.dirname(__file__)
+					toolbox = os.path.join(relpath, u'scripts', u'toolbox', u'geometry_tools.pyt')
+					pythonaddins.GPToolDialog(toolbox, u'OrthogonalizeBuildings')
+			else:
+				title = u'Warning'
+				message = u'{0}'.format(workspace[u'message'])
+				mb_type = 0
+				pythonaddins.MessageBox(message, title, mb_type)
 
 
 class OrthoRoadsButton(object):
@@ -151,14 +190,33 @@ class OrthoRoadsButton(object):
 							editor_object = editor)
 					arcpy.RefreshActiveView()
 				else:
+					# Fire a tool from toolbox if layer isn't in an edit session
 					layer = data[u'lyr']
 					title = u'Warning'
-					message = u'{0} is not in edit session'.format(layer.name)
-					pythonaddins.MessageBox(message, title, 0)
+					message = u'{0} layer is not in edit session\nWould you run a geoprocessing tool?'.format(
+						layer.name)
+					mb_type = 1
+					answer = pythonaddins.MessageBox(message, title, mb_type)
+					if answer == u'OK':
+						relpath = os.path.dirname(__file__)
+						toolbox = os.path.join(relpath, u'scripts', u'toolbox', u'geometry_tools.pyt')
+						pythonaddins.GPToolDialog(toolbox, u'OrthogonalizeBuildings')
 		else:
-			title = u'Warning'
-			message = workspace[u'message']
-			pythonaddins.MessageBox(message, title, 0)
+			if editor.path is None:
+				# Fire a tool from toolbox if there is no selection in a layer and no edit session
+				title = u'Warning'
+				message = u'{0}\nWould you run a geoprocessing tool?'.format(workspace[u'message'])
+				mb_type = 1
+				answer = pythonaddins.MessageBox(message, title, mb_type)
+				if answer == u'OK':
+					relpath = os.path.dirname(__file__)
+					toolbox = os.path.join(relpath, u'scripts', u'toolbox', u'geometry_tools.pyt')
+					pythonaddins.GPToolDialog(toolbox, u'OrthogonalizeBuildings')
+			else:
+				title = u'Warning'
+				message = u'{0}'.format(workspace[u'message'])
+				mb_type = 0
+				pythonaddins.MessageBox(message, title, mb_type)
 
 
 class OffsetButton(object):

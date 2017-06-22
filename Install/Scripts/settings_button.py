@@ -68,8 +68,6 @@ class GUI(tk.Frame):
 
 		top.bind('<Return>', self.btnClick)
 
-
-
 	def btnClick(self, event = None):
 		# Get values from Entry objects and put into outDict
 		for el, newval in self.elDict.items():

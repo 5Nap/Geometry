@@ -60,7 +60,13 @@ def getworkspace(geomtype = None, names = None):
 	selected_layers = []
 
 	for lyr in layers:
+		# 10.4 way:
 		# if arcpy.Describe(lyr).FIDSet != '':
+		# TODO
+		# This will fail in following cases:
+		# 1. there is only one feature in a layer
+		# 2. all features in a layer are selected
+		# 3. a huge feature which is setting layer extent is selected.
 		if str(lyr.getExtent()) != str(lyr.getSelectedExtent()):
 			trigger = 1
 			gdb = layerworkspace(lyr)

@@ -74,8 +74,8 @@ def getlinesintersection(a1, b1, c1, a2, b2, c2):
 
 
 def getpointonvector(p1, p2, l):
-	x1, y1 = p1
-	x2, y2 = p2
+	x1, y1, z1 = p1[0], p1[1], p1[2:]
+	x2, y2, z2 = p2[0], p2[1], p2[2:]
 	length = math.sqrt((x2-x1)**2+(y2-y1)**2)
 	if length != 0:
 		kx = (x2-x1) / length

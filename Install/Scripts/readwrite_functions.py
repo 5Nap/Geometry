@@ -7,8 +7,8 @@ WEBMERC = arcpy.SpatialReference(webmercator_wkid)
 
 def readwkt(wktstring):
 	# Reads WKT string to list
-	geom_type, coord_string = wktstring.split(' ', 1)
-	geometry = [strp.split(', ') for strp in coord_string[2:-2].split('), (')]
+	geom_type, coord_string = wktstring.split(' (', 1)
+	geometry = [strp.split(', ') for strp in coord_string[1:-2].split('), (')]
 	for i in xrange(len(geometry)):
 		for j in xrange(len(geometry[i])):
 			geometry[i][j] = [float(xy) for xy in geometry[i][j].split(' ')]
