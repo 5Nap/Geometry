@@ -137,6 +137,7 @@ def groupgeometry(poly_dict, group):
 
 
 def removepoints(poly_dict, group, threshold):
+	# type: (dict, list, float) -> tuple
 	points_coords, points_id = groupgeometry(poly_dict, group)
 	
 	# Последовательный перебор - берём первую точку, идём в первый
@@ -179,6 +180,7 @@ def removepoints(poly_dict, group, threshold):
 
 
 def clusterizeangles(poly_dict, group, threshold):
+	# type: (dict, list, float) -> tuple
 	# Разбивает все грани полигона на группы по заданному пределу. На
 	# вход принимает объект из класса poly_dict и предел в градусах По
 	# смыслу представляет из себя Natural Neighbour. Создаёт матрицу
@@ -202,12 +204,9 @@ def clusterizeangles(poly_dict, group, threshold):
 				dy = part[(i+1) % quant][1] - part[i][1]
 				lenghts += [math.hypot(dx, dy)]
 				angles += [floorangle(math.degrees(math.atan2(dy, dx)))]
-	# arcpy.AddMessage('lenghts: {0}'.format(lenghts))
-	# arcpy.AddMessage(angles)
 	# Matrix - матрица NxN с разницей углов наклона i-го и j-го	ребер.
 	matrix = [[math.fabs(angles[i]-angles[j]) for i in xrange(len(angles))] for j in xrange(len(angles))]
-	# arcpy.AddMessage(matrix)
-	
+
 	delta = 0
 	ind = []
 
@@ -271,8 +270,8 @@ def clusterizeangles(poly_dict, group, threshold):
 		for j in xrange(i):
 			ang_diff = math.fabs(med_angles[sum_lenghts_sort[i]] - med_angles[sum_lenghts_sort[j]])
 			if True in [X-threshold < ang_diff < X+threshold for X in [90.0]]:
-				closest_angle = min([90], key=lambda d: abs(d-ang_diff))
-				med_angles[sum_lenghts_sort[i]] = med_angles[sum_lenghts_sort[j]] + math.copysign(float(closest_angle), med_angles[sum_lenghts_sort[i]] - med_angles[sum_lenghts_sort[j]])
+				closest_angle = min([90.0], key=lambda x: abs(x - ang_diff))
+				med_angles[sum_lenghts_sort[i]] = med_angles[sum_lenghts_sort[j]] + math.copysign(closest_angle, med_angles[sum_lenghts_sort[i]] - med_angles[sum_lenghts_sort[j]])
 	
 	# Второй пересчёт индексов, замена [X]	на [PartNO,NodeNO]
 	true_ind = []
@@ -295,6 +294,7 @@ def clusterizeangles(poly_dict, group, threshold):
 
 
 def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id, threshold):
+	# type: (dict, list, list, list, list, list, float) -> dict
 	# Выравнивание сторон по направляющим. Index - массив с группами индексов, для которых дан угол в массиве Angle.
 	# Выравнивание проводится по порядку для каждого полигона в группе.
 
@@ -452,8 +452,13 @@ def orthogonalizegroup(poly_dict, group, index, angle, points_coords, points_id,
 	
 def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_groups = True, editor = None):
 	# Main function
-	# arcpy.AddMessage(threshold)
-
+	"""
+	:type layer: string
+	:type in_edit: boolean
+	:type threshold: double
+	:type proceed_groups: boolean
+	:type editor: Editor object
+	"""
 	arcpy.env.overwriteOutput = True
 	arcpy.env.XYTolerance = "0.1 Meters"
 	arcpy.env.XYResolution = "0.01 Meters"
@@ -488,21 +493,30 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_grou
 	else:
 		# Если операция надо всем слоем - работает в резервной копии
 		dsc = arcpy.Describe(layer)
-		layer_name = dsc.baseName
-		fd = dsc.path
-		dsc = arcpy.Describe(fd)
-		if dsc.dataType == 'FeatureDataset':
-			gdb = dsc.path
+		layer_path = dsc.catalogPath
+		if len(os.path.splitext(layer_path)[1]) >= 1:
+			layer_work = u'{0}_ortho.{1}'.format(os.path.splitext(layer_path)[0], os.path.splitext(layer_path)[1])
 		else:
-			gdb = fd
-
-		arcpy.AddMessage("-> Feature dataset: " + fd)
-		arcpy.AddMessage("-> Layer: " + layer_name)
-
-		layer_path = os.path.join(fd, layer_name)
-		layer_work = os.path.join(fd, layer_name + "_Ortho")
-
+			layer_work = u'{0}_ortho'.format(layer_path)
+		arcpy.AddMessage(u'-> New Layer: {0}'.format(layer_work))
 		arcpy.Copy_management(layer_path, layer_work)
+		#
+		# dsc = arcpy.Describe(layer)
+		# layer_name = dsc.baseName
+		# fd = dsc.path
+		# dsc = arcpy.Describe(fd)
+		# if dsc.dataType == 'FeatureDataset':
+		# 	gdb = dsc.path
+		# else:
+		# 	gdb = fd
+		#
+		# arcpy.AddMessage("-> Feature dataset: " + fd)
+		# arcpy.AddMessage("-> Layer: " + layer_name)
+		#
+		# layer_path = os.path.join(fd, layer_name)
+		# layer_work = os.path.join(fd, layer_name + u"_ortho")
+		#
+		# arcpy.Copy_management(layer_path, layer_work)
 
 	####################################################################################################################
 
@@ -582,5 +596,3 @@ if __name__ == '__main__':
 			threshold = in_thr,
 			proceed_groups = True,
 			editor = None)
-
-

@@ -8,54 +8,59 @@ WEBMERC = arcpy.SpatialReference(webmercator_wkid)
 
 
 def getlineangle(p0, p1):
+	# type: (list, list) -> float
 	angle = math.atan2(p1[1]-p0[1], p1[0]-p0[0])
-	if angle > 180:
-		return angle - 360
-	elif angle < -180:
-		return angle + 360
+	if angle > 180.0:
+		return angle - 360.0
+	elif angle < -180.0:
+		return angle + 360.0
 	else:
 		return angle
 
 
 def getanglebetweenvectors(p0, p1, p2):
+	# type: (list, list, list) -> float
 	# Returns angle between vectors p1p0 and p1p2
 	# if vector turns counter-clockwise - angle >= 0 else < 0
 	angle1 = math.atan2(p1[1]-p0[1], p1[0]-p0[0])
 	angle2 = math.atan2(p2[1]-p1[1], p2[0]-p1[0])
 	angle = math.degrees(angle2 - angle1)
-	if angle > 180:
-		return angle - 360
-	elif angle < -180:
-		return angle + 360
+	if angle > 180.0:
+		return angle - 360.0
+	elif angle < -180.0:
+		return angle + 360.0
 	else:
 		return angle
 
 
 def getanglebetweenlines(vector1, vector2):
+	# type: (list, list) -> float
 	# returns angle between vectors line1 and line2
 	# line = [[x0, y0], [x1, y1]]
 	angle1 = math.atan2(vector1[1][1] - vector1[0][1], vector1[1][0] - vector1[0][0])
 	angle2 = math.atan2(vector2[1][1] - vector2[0][1], vector2[1][0] - vector2[0][0])
 	angle = math.degrees(angle2 - angle1)
-	if angle > 180:
-		return angle - 360
-	elif angle < -180:
-		return angle + 360
+	if angle > 180.0:
+		return angle - 360.0
+	elif angle < -180.0:
+		return angle + 360.0
 	else:
 		return angle
 
 
 def floorangle(angle):
+	# type: (float) -> float
 	# Returns angle in (-90, 90) from (-180,180) after atan2
-	if angle > 90:
-		return angle-180
-	elif angle < -90:
-		return angle+180
+	if angle > 90.0:
+		return angle - 180.0
+	elif angle < -90.0:
+		return angle + 180.0
 	else:
 		return angle
 
 
 def getlineequation(x1, y1, x2, y2):
+	# type: (float, float, float, float) -> tuple
 	# Equation of a line between two points
 	a = (y1-y2)
 	b = (x2-x1)
@@ -64,6 +69,7 @@ def getlineequation(x1, y1, x2, y2):
 
 
 def getlinesintersection(a1, b1, c1, a2, b2, c2):
+	# type: (float, float, float, float, float, float) -> tuple
 	# Returns a point where two lines with coeff a-b-c cross
 	if (a1*b2-a2*b1) != 0:
 		x = -(c1*b2-c2*b1)/(a1*b2-a2*b1)
@@ -74,6 +80,7 @@ def getlinesintersection(a1, b1, c1, a2, b2, c2):
 
 
 def getpointonvector(p1, p2, l):
+	# type: (list, list, float) -> list or None
 	x1, y1, z1 = p1[0], p1[1], p1[2:]
 	x2, y2, z2 = p2[0], p2[1], p2[2:]
 	length = math.sqrt((x2-x1)**2+(y2-y1)**2)
@@ -88,12 +95,14 @@ def getpointonvector(p1, p2, l):
 
 
 def calcoffsetpoint(pt1, pt2, offset):
+	# type: (list, list, float) -> tuple
 	theta = math.atan2(pt2[1] - pt1[1], pt2[0] - pt1[0])
 	theta += math.pi / 2.0
 	return pt1[0] + math.cos(theta) * offset, pt1[1] + math.sin(theta) * offset
 
 
 def getoffsetintercept(pt1, pt2, m, offset):
+	# type: (list, list, float, float) -> float
 	# From points pt1 and pt2 defining a line in the Cartesian plane, the slope of the line m,
 	# and an offset distance, calculates the y intercept of the new line offset from the original.
 	x, y = calcoffsetpoint(pt1, pt2, offset)
@@ -101,8 +110,9 @@ def getoffsetintercept(pt1, pt2, m, offset):
 
 
 def getpt(pt1, pt2, pt3, offset):
-	# Gets intersection point of the two lines defined by pt1, pt2, and pt3; offset is the
-	# distance to offset the point from the polygon.
+	# type: (list, list, list, float) -> tuple
+	# Gets intersection point of the two lines defined by pt1, pt2, and pt3
+	# offset is the distance to offset the point from the polygon.
 
 	# Get first offset intercept
 	if pt2[0] - pt1[0] != 0:
@@ -110,6 +120,7 @@ def getpt(pt1, pt2, pt3, offset):
 		boffset = getoffsetintercept(pt1, pt2, m, offset)
 	else:  # if vertical line (i.e. undefined slope)
 		m = "undefined"
+		boffset = 0.0
 
 	# Get second offset intercept
 	if pt3[0] - pt2[0] != 0:
@@ -117,6 +128,7 @@ def getpt(pt1, pt2, pt3, offset):
 		boffsetprime = getoffsetintercept(pt2, pt3, mprime, offset)
 	else:  # if vertical line (i.e. undefined slope)
 		mprime = "undefined"
+		boffsetprime = 0.0
 
 	# Get intersection of two offset lines
 	if m != "undefined" and mprime != "undefined" and m != mprime:
@@ -141,4 +153,6 @@ def getpt(pt1, pt2, pt3, offset):
 		length = (dx**2 + dy**2)**0.5
 		newx = pt2[0] - (dy/length)*offset
 		newy = pt2[1] + (dx/length)*offset
+	else:
+		newx, newy = pt2
 	return newx, newy

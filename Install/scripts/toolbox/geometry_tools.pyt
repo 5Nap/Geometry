@@ -1,10 +1,8 @@
-# coing: utf-8
+# coding: utf-8
 
 import os
 import sys
 import arcpy
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 
 class Toolbox(object):
@@ -60,6 +58,7 @@ class OrthogonalizeBuildings(object):
 
 	def execute(self, parameters, messages):
 		"""The source code of the tool."""
+		sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 		from orthogonalization import orthogonalizepolygons
 		in_layer = parameters[0].value
 		in_thr = parameters[1].value
@@ -130,6 +129,7 @@ class CreateCurves(object):
 
 	def execute(self, parameters, messages):
 		"""The source code of the tool."""
+		sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 		from curving import createcurves
 		in_layer = parameters[0].value
 		in_angle = parameters[1].value
@@ -139,9 +139,9 @@ class CreateCurves(object):
 		layer_path = dsc.catalogPath
 		if parameters[3].value:
 			if len(os.path.splitext(layer_path)[1]) >= 1:
-				layer_work = u'{0}_Curved.{1}'.format(os.path.splitext(layer_path)[0], os.path.splitext(layer_path)[1])
+				layer_work = u'{0}_curved.{1}'.format(os.path.splitext(layer_path)[0], os.path.splitext(layer_path)[1])
 			else:
-				layer_work = u'{0}_Curved'.format(layer_path)
+				layer_work = u'{0}_curved'.format(layer_path)
 			arcpy.AddMessage(u'-> New Layer: {0}'.format(layer_work))
 			arcpy.Copy_management(layer_path, layer_work)
 		else:

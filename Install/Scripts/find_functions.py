@@ -105,10 +105,32 @@ def findsinglevertex(layer):
 			out_feature_class = vert,
 			point_location = u'ALL')
 
+	# FIXME
+	# test way to skip last points in polygons
+	# sql-clause doesn't work in in_memory datasets
+	oid_field = arcpy.Describe(layer).OIDFieldName
+	lastpoints = []
+	if arcpy.Describe(layer).shapeType == 'Polygon':
+		prev_id = -1
+		prev_row = -1
+		with arcpy.da.SearchCursor(vert, ['OID@', 'ORIG_FID']) as sc:
+			for row in sc:
+				if row[1] != prev_id:
+					lastpoints.append(prev_row)
+					prev_id = row[1]
+				prev_row = row[0]
+		lastpoints.append(row[0])
+
+		with arcpy.da.UpdateCursor(vert, ['OID@']) as uc:
+			for row in uc:
+				if row[0] in lastpoints:
+					uc.deleteRow()
+
 	# points = {PointFID: [LineID, PointNo], ...}
 	points = {}
 	lines_id = []
-	with arcpy.da.SearchCursor(vert, ['OID@', 'ORIG_FID']) as sc:
+	clause = (None, 'ORDER BY {0} DESC'.format(oid_field))
+	with arcpy.da.SearchCursor(vert, ['OID@', 'ORIG_FID'], sql_clause = clause) as sc:
 		feat_num = -1
 		vert_num = -1
 		for row in sc:
@@ -127,14 +149,15 @@ def findsinglevertex(layer):
 			xy_tolerance = u'0.2 Meters',
 			output_record_option = u'ONLY_DUPLICATES')
 
-	identical_v = [row[0] for row in arcpy.da.SearchCursor(ident, 'IN_FID')]  # ids of identical vetices
-	single_v = [x+1 for x in xrange(len(points)) if x+1 not in identical_v]      # ids of single vertices
+	# print 'points', points
 
-	single_pair = [points[x] for x in single_v]   # [LineID, PointNo]
+	identical_v = [row[0] for row in arcpy.da.SearchCursor(ident, 'IN_FID')]  # ids of identical vetices
+
+	single_pairs = [val for key, val in points.items() if key not in identical_v]
 
 	single_out = {oid: [] for oid in lines_id}
 
-	for p in single_pair:
+	for p in single_pairs:
 		single_out[p[0]].append(p[1])
 
 	arcpy.Delete_management(vert)
