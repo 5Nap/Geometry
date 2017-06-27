@@ -500,29 +500,18 @@ def orthogonalizepolygons(layer, in_edit = False, threshold = 10.0, proceed_grou
 			layer_work = u'{0}_ortho'.format(layer_path)
 		arcpy.AddMessage(u'-> New Layer: {0}'.format(layer_work))
 		arcpy.Copy_management(layer_path, layer_work)
-		#
-		# dsc = arcpy.Describe(layer)
-		# layer_name = dsc.baseName
-		# fd = dsc.path
-		# dsc = arcpy.Describe(fd)
-		# if dsc.dataType == 'FeatureDataset':
-		# 	gdb = dsc.path
-		# else:
-		# 	gdb = fd
-		#
-		# arcpy.AddMessage("-> Feature dataset: " + fd)
-		# arcpy.AddMessage("-> Layer: " + layer_name)
-		#
-		# layer_path = os.path.join(fd, layer_name)
-		# layer_work = os.path.join(fd, layer_name + u"_ortho")
-		#
-		# arcpy.Copy_management(layer_path, layer_work)
 
 	####################################################################################################################
 
-	arcpy.Integrate_management(layer_work, '0.1 Meters')
+	# FIXME
+	# Integrate fails if path contains restricted characters (spaces etc.)
+	# It happens when running a tool for layer, not selection
+	try:
+		arcpy.Integrate_management(layer_work, '0.1 Meters')
+	except RuntimeError:
+		arcpy.AddMessage(u'...Failed to run Integrate tool')
 
-	# dictionary created from main layer with {ID: {geom: [Geomentry], isAlone: T/F}
+	# dictionary created from main layer with {ID: {geom: [Geomentry], isAlone: Boolean}
 	poly_dict = {}
 	with arcpy.da.SearchCursor(layer_work, ['OID@', 'SHAPE@WKT'], spatial_reference = WEBMERC) as sc:
 		for row in sc:

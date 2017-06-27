@@ -188,10 +188,6 @@ def createcurves(layer, jsonwkt, angle_th, radius_th):
 
 if __name__ == '__main__':
 	in_layer = arcpy.GetParameterAsText(0)
-	# in_layer = ur'D:\Projects\_тест\test_tline.gdb\allhouse'
-	# in_layer = ur'D:\Projects\_тест\test_tline.gdb\line_test'
-	# in_layer = ur'D:\Projects\_тест\test_tline.gdb\тлайнwgs
-
 	createcurves(
 			layer = in_layer,
 			jsonwkt = 'WKT',

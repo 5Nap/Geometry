@@ -62,7 +62,6 @@ def findnearestline(layer, other_layer, radius=0):
 						if distance == 0:
 							find_flag = 2
 
-			# know to select nearest two points from line
 	line = 0
 	if find_flag >= 1 and nearest_geometry is not None and base_geometry is not None:
 		atuple = nearest_geometry.queryPointAndDistance(base_geometry.centroid, False)
@@ -94,9 +93,14 @@ def findbiggestgeometry(houses_around):
 # find and return list of vertex located not at the crossroads
 def findsinglevertex(layer):
 	# find single vertices
-	# TODO
-	# Integrate fails for some reason
-	# arcpy.Integrate_management(layer, '0.1 Meters')
+	# FIXME
+	# Integrate fails when path contains spaces
+	# Possible way to fix it is to use arcpy.env and call layer by it's name
+	try:
+		arcpy.Integrate_management(layer, '0.1 Meters')
+	except RuntimeError:
+		arcpy.AddMessage(u'...Failed to run Integrate tool')
+
 	arcpy.env.addOutputsToMap = False
 	vert = u'in_memory\\vert'
 	ident = u'in_memory\\ident'
@@ -119,7 +123,8 @@ def findsinglevertex(layer):
 					lastpoints.append(prev_row)
 					prev_id = row[1]
 				prev_row = row[0]
-		lastpoints.append(row[0])
+			# append last point of last polygon
+			lastpoints.append(row[0])
 
 		with arcpy.da.UpdateCursor(vert, ['OID@']) as uc:
 			for row in uc:
@@ -149,8 +154,6 @@ def findsinglevertex(layer):
 			xy_tolerance = u'0.2 Meters',
 			output_record_option = u'ONLY_DUPLICATES')
 
-	# print 'points', points
-
 	identical_v = [row[0] for row in arcpy.da.SearchCursor(ident, 'IN_FID')]  # ids of identical vetices
 
 	single_pairs = [val for key, val in points.items() if key not in identical_v]
@@ -174,13 +177,9 @@ def findlongestside(geomlist):
 		pnt_count = len(part)-1
 		for k in xrange(pnt_count):
 			bp = part[k]
-			np = part[(k+1)%pnt_count]
+			np = part[(k+1) % pnt_count]
 			length = math.sqrt((np[0]-bp[0])**2 + (np[1]-bp[1])**2)
 			if length > max_len:
 				max_len = length
 				max_side = [bp, np]
 	return max_side
-
-
-
-

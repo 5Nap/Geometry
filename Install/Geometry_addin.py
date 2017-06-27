@@ -53,7 +53,7 @@ class CurveButton(object):
 		global editor
 		editor.get_current()
 
-		workspace = getworkspace(geomtype = u'Polyline')
+		workspace = getworkspace()
 		if workspace[u'data'] is not None:
 			for data in workspace[u'data']:
 				if data[u'gdb'] == editor.path:

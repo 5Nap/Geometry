@@ -88,6 +88,7 @@ class CreateCurves(object):
 				parameterType = "Required",
 				datatype = "GPFeatureLayer",
 				multiValue = False)
+
 		parameter1 = arcpy.Parameter(
 				name = "in_angle",
 				displayName = "Angle threshold",
@@ -95,6 +96,7 @@ class CreateCurves(object):
 				parameterType = "Required",
 				datatype = "GPDouble")
 		parameter1.value = 0
+
 		parameter2 = arcpy.Parameter(
 				name = "in_radius",
 				displayName = "Curve radius",
@@ -102,6 +104,7 @@ class CreateCurves(object):
 				parameterType = "Required",
 				datatype = "GPDouble")
 		parameter2.value = 5
+
 		parameter3 = arcpy.Parameter(
 				name = "in_copy",
 				displayName = "Create layer's copy?",
@@ -109,6 +112,7 @@ class CreateCurves(object):
 				parameterType = "Optional",
 				datatype = "GPBoolean")
 		parameter3.value = True
+
 		parameters = [parameter0, parameter1, parameter2, parameter3]
 		return parameters
 

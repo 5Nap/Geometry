@@ -23,7 +23,6 @@ def getworkspace(geomtype = None, names = None):
 	# current project
 	mxd = arcpy.mapping.MapDocument('current')
 	df = arcpy.mapping.ListDataFrames(mxd)
-	# sr_df = df[0].spatialReference
 
 	map_layers = arcpy.mapping.ListLayers(df[0])
 
