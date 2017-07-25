@@ -143,7 +143,7 @@ class CreateCurves(object):
 		layer_path = dsc.catalogPath
 		if parameters[3].value:
 			if len(os.path.splitext(layer_path)[1]) >= 1:
-				layer_work = u'{0}_curved.{1}'.format(os.path.splitext(layer_path)[0], os.path.splitext(layer_path)[1])
+				layer_work = u'{0}_curved{1}'.format(os.path.splitext(layer_path)[0], os.path.splitext(layer_path)[1])
 			else:
 				layer_work = u'{0}_curved'.format(layer_path)
 			arcpy.AddMessage(u'-> New Layer: {0}'.format(layer_work))

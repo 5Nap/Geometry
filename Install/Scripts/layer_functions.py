@@ -9,12 +9,16 @@ WGS = arcpy.SpatialReference(4326)
 
 
 def layerworkspace(layer):
-	if type(layer) is arcpy.mapping.Layer:
-		layer = layer.dataSource
-	fd_or_ws = os.path.dirname(layer)
-	if arcpy.Describe(fd_or_ws).dataType == 'FeatureDataset':
-		fd_or_ws = os.path.dirname(fd_or_ws)
-	return fd_or_ws
+	try:
+		if type(layer) is arcpy.mapping.Layer:
+			layer = layer.dataSource
+		fd_or_ws = os.path.dirname(layer)
+		if arcpy.Describe(fd_or_ws).dataType == 'FeatureDataset':
+			fd_or_ws = os.path.dirname(fd_or_ws)
+		return fd_or_ws
+	except:
+		print u'failed to get workspace of {}'.format(layer)
+		return None
 
 
 def getworkspace(geomtype = None, names = None):
@@ -24,7 +28,13 @@ def getworkspace(geomtype = None, names = None):
 	mxd = arcpy.mapping.MapDocument('current')
 	df = arcpy.mapping.ListDataFrames(mxd)
 
-	map_layers = arcpy.mapping.ListLayers(df[0])
+	try:
+		map_layers = [
+				l for l in arcpy.mapping.ListLayers(df[0])
+				if u'database connections' not in l.dataSource.lower() and
+				u'connection to' not in l.dataSource.lower()]
+	except:
+		map_layers = arcpy.mapping.ListLayers(df[0])
 
 	# get tline layer
 	tline_lyr = None
@@ -42,14 +52,20 @@ def getworkspace(geomtype = None, names = None):
 				l for l in map_layers
 				if l.isFeatureLayer and
 				not l.isBroken and
-				arcpy.Describe(layerworkspace(l)).workspaceType != u'RemoteDatabase']
+				layerworkspace(l) is not None]
+		layers = [
+				l for l in layers
+				if arcpy.Describe(layerworkspace(l)).workspaceType != u'RemoteDatabase']
 	else:
 		layers = [
 				l for l in map_layers
 				if l.isFeatureLayer and
 				not l.isBroken and
-				arcpy.Describe(layerworkspace(l)).workspaceType != u'RemoteDatabase' and
+				layerworkspace(l) is not None and
 				l.name in names]
+		layers = [
+				l for l in layers
+				if arcpy.Describe(layerworkspace(l)).workspaceType != u'RemoteDatabase']
 
 	# Filter list if geometry type had been set
 	if geomtype is not None:

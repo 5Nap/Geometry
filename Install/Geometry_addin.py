@@ -6,15 +6,20 @@ import arcpy
 import subprocess
 import pythonaddins
 
+# append 'scripts' dir to system path
 filesystem_enc = sys.getfilesystemencoding()
 try:
 	rel_path = os.path.normpath(os.path.dirname(__file__).decode(filesystem_enc))
 except UnicodeEncodeError:
 	rel_path = os.path.normpath(os.path.dirname(__file__))
 
-sys.path.append(os.path.join(rel_path, u'scripts'))
+SRC = os.path.join(rel_path, u'scripts')
+sys.path.append(SRC)
+
+# don't create pyc
 sys.dont_write_bytecode = True
 
+# import functions from local modules
 from layer_functions import getworkspace, checkallhouse, readnearestroads, readnearestbuildings
 from find_functions import findnearestbuilding, findnearestline
 from curving import createcurves
@@ -24,8 +29,12 @@ from offsetting import createoffset
 from cls_editor import Editor
 from cls_timer import Timer
 
+__version__ = '1.0.1'
+
+# 10.2 wouldn't work with JSON and curves so use WKT instead
 json_or_wkt = u'WKT' if arcpy.GetInstallInfo()['Version'] < '10.3' else u'JSON'
 
+# default settings dictionary
 settings_dict = {
 	u'Ortho Threshold': 10,
 	u'Search Radius': 50,
@@ -36,11 +45,23 @@ settings_dict = {
 	u'Align to Roads': 0,
 	u'Read Offset from Field': 0}  # align to roads
 
+# set default XY tolerance
 arcpy.env.XYTolerance = u'0.1 Meters'
+
+# find path to python executable (need it to run subprocess)
 python_path = os.path.join(sys.exec_prefix, u'python.exe')
 
+# create dummy Editor and Timer objects
 editor = Editor()
 timer = Timer()
+
+# ##################################################################################################################
+# Base logic for every processing buttons:
+# 1. get global Editor and update it. Editor now have .path with current workspace or None if no session'd started
+# 2. get all layers with selection. getworkspace return Lyr object + gdb + extent
+# 3. run processing function for every Lyr where gdb == Editor.path
+# 4. ask user to run geoprocessing tool if gdb != Editor.path
+# ##################################################################################################################
 
 
 class CurveButton(object):
@@ -50,17 +71,25 @@ class CurveButton(object):
 		self.checked = False
 
 	def onClick(self):
+		# get and update Editor object
 		global editor
 		editor.get_current()
 
+		# get layer with selection
 		workspace = getworkspace()
+
+		# if there is a layer with selection:
 		if workspace[u'data'] is not None:
+			# for every layer with selection:
 			for data in workspace[u'data']:
+				# if layer's workspace and editor's workspace are the same location
 				if data[u'gdb'] == editor.path:
+					# get Layer object
 					layer = data[u'lyr']
 
 					timer.start()
 
+					# if WKT - generalize curves
 					if json_or_wkt == u'WKT':
 						arcpy.Densify_edit(
 								in_features = layer,
@@ -68,6 +97,7 @@ class CurveButton(object):
 								max_deviation = u'0.01 Meters')
 
 					editor.start_operation()
+					# run processing
 					createcurves(
 							layer = layer,
 							jsonwkt = json_or_wkt,
@@ -77,7 +107,7 @@ class CurveButton(object):
 
 					arcpy.RefreshActiveView()
 					timer.stop(message = u'Create Curves')
-				else:
+				elif editor.path is None:
 					# Fire a tool from toolbox if layer isn't in an edit session
 					layer = data[u'lyr']
 					title = u'Warning'
@@ -122,6 +152,7 @@ class OrthoBuildingsButton(object):
 		if workspace[u'data'] is not None:
 			for data in workspace[u'data']:
 				if data[u'gdb'] == editor.path:
+					# create dummy settings_dict with 'Align to Roads' set to 0
 					temp_settings = {key: value for key, value in settings_dict.items()}
 					temp_settings[u'Align to Roads'] = 0
 
@@ -133,7 +164,7 @@ class OrthoBuildingsButton(object):
 							force = True,
 							editor_object = editor)
 					arcpy.RefreshActiveView()
-				else:
+				elif editor.path is None:
 					# Fire a tool from toolbox if layer isn't in an edit session
 					layer = data[u'lyr']
 					title = u'Warning'
@@ -178,6 +209,7 @@ class OrthoRoadsButton(object):
 		if workspace[u'data'] is not None:
 			for data in workspace[u'data']:
 				if data[u'gdb'] == editor.path:
+					# create dummy settings_dict with 'Align to Roads' set to 1
 					temp_settings = {key: value for key, value in settings_dict.items()}
 					temp_settings[u'Align to Roads'] = 1
 
@@ -189,7 +221,7 @@ class OrthoRoadsButton(object):
 							force = True,
 							editor_object = editor)
 					arcpy.RefreshActiveView()
-				else:
+				elif editor.path is None:
 					# Fire a tool from toolbox if layer isn't in an edit session
 					layer = data[u'lyr']
 					title = u'Warning'
@@ -273,7 +305,7 @@ class SettingsButton(object):
 	# Implementation for Geom_addin.btnSettings (Button)
 
 	# Fires a GUI (Tk). Runs as a subprocess because of a conflict between ArcGIS and Tk.
-	# The settings would be saved back to settingDict and kept until ArcGIS shutdown.
+	# The settings would be saved back to settings_dict and kept until ArcGIS shutdown.
 
 	def __init__(self):
 		self.enabled = True
@@ -282,7 +314,7 @@ class SettingsButton(object):
 	def onClick(self):
 		global settings_dict
 
-		script = os.path.join(rel_path, u'scripts', u'settings_button.py')
+		script = os.path.join(SRC, u'settings_button.py')
 
 		script_string = u'{0},{1},{2},{3},{4},{5},{6},{7}'.format(
 			unicode(settings_dict[u'Ortho Threshold']),

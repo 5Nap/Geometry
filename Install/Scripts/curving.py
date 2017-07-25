@@ -8,7 +8,7 @@ import math
 
 
 from geometry_functions import getanglebetweenvectors, getpointonvector, getlineequation, getlinesintersection
-from readwrite_functions import readwkt, writewkt
+# from readwrite_functions import readwkt, writewkt
 
 sys.path.append(os.path.dirname(__file__))
 
@@ -26,6 +26,7 @@ def getjsonpoint(jsonobj):
 
 def createcurves(layer, jsonwkt, angle_th, radius_th):
 	from find_functions import findsinglevertex
+	angle_th = 1 if angle_th < 1 else angle_th
 	shapetype = arcpy.Describe(layer).shapeType
 	single = findsinglevertex(layer)
 
